@@ -17,6 +17,9 @@ class GorillaPlugin:
 
     __hotkey__:str=None
     __is_active__:bool=False
+
+    def __init__(self, hotkey:str=None) -> None:
+        self.__hotkey__ = hotkey
     
     @abstractmethod
     def parser(self, text:str) -> str:

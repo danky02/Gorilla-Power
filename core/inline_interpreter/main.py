@@ -31,7 +31,7 @@ types_formatter:dict[str, Callable[[Any], str]] = {
 
 
 class Plugin(GorillaPlugin):
-    name = "Core Simple Plugin"
+    name = "Python Inline Interpreter"
 
     # PARSER OPTIONS
     suppress:bool = True
@@ -46,4 +46,4 @@ class Plugin(GorillaPlugin):
             formatter = types_formatter[type_name]
             return formatter(eval_result)
         else:
-            return eval_result
+            return str(eval_result)

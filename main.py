@@ -1,29 +1,20 @@
 import json
-import keyboard
 import time
-import pyautogui
-import pyperclip
-from contextlib import contextmanager
 import os
 import importlib
 from gorilla import GorillaPlugin
+from contextlib import contextmanager
 
-        
-        
-def import_module_from_subfolder(subfolder_name):
-    module_name = f"plugins.{subfolder_name}.main"
+@contextmanager
+def import_plugin(main_folder, plugin_name):
+    module_name = f"{main_folder}.{plugin_name}.main"
     try:
         imported_module = importlib.import_module(module_name)
-        return imported_module
+        plugin_constructor = imported_module.Plugin
+        if issubclass(plugin_constructor, GorillaPlugin):
+            yield plugin_constructor
     except ModuleNotFoundError:
-        return None
-    
-def get_entry_point_function(module):
-    if module:
-        plugin:GorillaPlugin = module.Plugin
-        if issubclass(plugin, GorillaPlugin):
-            return plugin
-    return None
+        yield None
 
 
 
@@ -37,19 +28,46 @@ if __name__ == "__main__":
         
         plugins:list[GorillaPlugin] = []
 
-        for name in os.listdir("plugins"):
-            module = import_module_from_subfolder(name)
-            plugin = get_entry_point_function(module)
-            if plugin:
-                instance = plugin()
-                plugins.append(instance)
-                instance.set_hotkey('f5')
-                instance.activate()
+        data:dict
+        with open("config.json", mode="r") as f:
+            data = json.loads(f.read())
+        
+        # import core plugins
+        for pl_name, config in data['core'].items():
+            with import_plugin("core", pl_name) as constructor:
+                if constructor:
+                    instance = constructor(config.get('hotkey', None))
+                    if config.get('active', False) == True:
+                        instance.activate()
+
+                    plugins.append(instance)
+
+        # import external plugins
+        for pl_name, config in data['plugins'].items():
+            with import_plugin("plugins", pl_name) as constructor:
+                if constructor:
+                    instance = constructor(config.get('hotkey', None))
+                    if config.get('active', False) == True:
+                        instance.activate()
+
+                    plugins.append(instance)
+            
+        print(f"successfully installed {len(plugins)} core plugin{'s' if len(plugins) != 1 else ''}: { ', '.join([x.name for x in plugins])}")
+        
+        print("Running Gorilla")
         
         while True:
-            time.sleep(1)
-    except Exception as e:
-        raise e
+            time.sleep(10)
+
+    except KeyboardInterrupt:
+        for p in plugins:
+            p.deactivate()
+        
+        print("Gorilla Stopped, bye")
+        exit()
+    except Exception as exc:
+        with open("error.txt", mode="w+") as e:
+            e.write(str(exc))
         print("Gorilla is looking for his bananas, but he has found nothing good at the moment")
 
     

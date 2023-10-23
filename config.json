@@ -1,0 +1,15 @@
+{
+    "core": {
+        "inline_interpreter": {
+            "hotkey": "f5",
+            "active": true
+        },
+        "gorilla_says": {
+            "hotkey": "f4",
+            "active": true
+        }
+    },
+    "plugins": {
+
+    }
+}
