@@ -1,0 +1,6 @@
+{
+    "hotkeys": ["ctrl+'"],
+    "copy_enable": true,
+    "paste_enable": true,
+    "entry_point": "decorator"
+}
